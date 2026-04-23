@@ -6,6 +6,14 @@ import { dummySkills } from "@/lib/dummy-skills";
 
 export const Route = createFileRoute("/")({ component: App });
 
+/**
+ * Renders the homepage for the registry, including the hero call-to-action and a list of recently created skills.
+ *
+ * The hero presents the product name, descriptive copy, and navigation actions to browse the registry or publish a new skill.
+ * The latest section displays skills from `dummySkills` in descending creation order, or a placeholder message when none exist.
+ *
+ * @returns The root JSX element for the home page UI
+ */
 function App() {
 	return (
 		<div id="home">
