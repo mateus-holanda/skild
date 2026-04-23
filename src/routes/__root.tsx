@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/tanstack-react-start";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -9,7 +10,6 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
 import CrossHair from "@/components/CrossHair";
 import Navbar from "@/components/Navbar";
-import ClerkProvider from "@/integrations/clerk/provider";
 import TanStackQueryDevtools from "@/integrations/tanstack-query/devtools";
 import appCss from "@/styles.css?url";
 
