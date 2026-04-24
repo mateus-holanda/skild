@@ -10,18 +10,22 @@ import {
 import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 
+import type { GetSkillsData } from "@/dataconnect-generated";
+
+type SkillCardProps = GetSkillsData["skills"][number];
+
 const SkillCard = ({
 	title,
-	slug,
 	description,
-	category,
 	tags,
 	installCommand,
-	authorEmail,
+	author,
 	createdAt,
-}: SkillRecord) => {
+}: SkillCardProps) => {
 	const [copied, setCopied] = useState(false);
 	const posthog = usePostHog();
+
+	const category = tags[0] ?? "General";
 
 	const handleCopy = async () => {
 		try {
@@ -41,7 +45,7 @@ const SkillCard = ({
 	return (
 		<article className="skill-card">
 			<Link
-				to={`/skills/${slug}`}
+				to="/skills"
 				tabIndex={-1}
 				aria-label={`View details for ${title}`}
 				className="overlay"
@@ -61,9 +65,13 @@ const SkillCard = ({
 			<div className="body">
 				<div className="meta">
 					<div className="author">
-						<img src="/logo512.png" alt="author avatar" className="avatar" />
+						<img
+							src={author.imageUrl || "/logo512.png"}
+							alt={`${author.username} avatar`}
+							className="avatar"
+						/>
 						<div className="author-copy">
-							<p>Mateus</p>
+							<p>{author.username}</p>
 							<p>
 								{createdAt
 									? new Date(createdAt).toLocaleDateString()
@@ -76,7 +84,7 @@ const SkillCard = ({
 				</div>
 
 				<div className="summary">
-					<Link to={`/skills/${slug}`} className="title-link">
+					<Link to="/skills" className="title-link">
 						<h3>{title}</h3>
 					</Link>
 					<p>{description}</p>
@@ -110,7 +118,7 @@ const SkillCard = ({
 
 						<div className="comments">
 							<MessageSquare size={14} />
-							<span>{authorEmail ? 1 : 0}</span>
+							<span>{author.email ? 1 : 0}</span>
 						</div>
 					</div>
 
