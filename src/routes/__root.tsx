@@ -1,3 +1,4 @@
+import { ClerkProvider, useUser } from "@clerk/tanstack-react-start";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -6,10 +7,11 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { PostHogProvider, usePostHog } from "posthog-js/react";
+import { useEffect } from "react";
 
 import CrossHair from "@/components/CrossHair";
 import Navbar from "@/components/Navbar";
-import ClerkProvider from "@/integrations/clerk/provider";
 import TanStackQueryDevtools from "@/integrations/tanstack-query/devtools";
 import appCss from "@/styles.css?url";
 
@@ -48,6 +50,24 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	shellComponent: RootDocument,
 });
 
+function PostHogUserIdentifier() {
+	const { user, isSignedIn } = useUser();
+	const posthog = usePostHog();
+
+	useEffect(() => {
+		if (isSignedIn && user) {
+			posthog.identify(user.id, {
+				email: user.primaryEmailAddress?.emailAddress,
+				name: user.fullName,
+			});
+		} else if (isSignedIn === false) {
+			posthog.reset();
+		}
+	}, [isSignedIn, user, posthog]);
+
+	return null;
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
@@ -57,34 +77,48 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body className="font-sans antialiased wrap-anywhere">
-				<ClerkProvider>
-					<div id="root-layout">
-						<header>
-							<div className="frame">
-								<Navbar />
-								<CrossHair />
-								<CrossHair />
-							</div>
-						</header>
+				<PostHogProvider
+					apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN}
+					options={{
+						api_host: "/ingest",
+						ui_host:
+							import.meta.env.VITE_PUBLIC_POSTHOG_HOST ||
+							"https://us.posthog.com",
+						defaults: "2025-05-24",
+						capture_exceptions: true,
+						debug: import.meta.env.DEV,
+					}}
+				>
+					<ClerkProvider>
+						<PostHogUserIdentifier />
+						<div id="root-layout">
+							<header>
+								<div className="frame">
+									<Navbar />
+									<CrossHair />
+									<CrossHair />
+								</div>
+							</header>
 
-						<main>
-							<div className="frame">{children}</div>
-						</main>
-					</div>
+							<main>
+								<div className="frame">{children}</div>
+							</main>
+						</div>
 
-					<TanStackDevtools
-						config={{
-							position: "bottom-right",
-						}}
-						plugins={[
-							{
-								name: "Tanstack Router",
-								render: <TanStackRouterDevtoolsPanel />,
-							},
-							TanStackQueryDevtools,
-						]}
-					/>
-				</ClerkProvider>
+						<TanStackDevtools
+							config={{
+								position: "bottom-right",
+							}}
+							plugins={[
+								{
+									name: "Tanstack Router",
+									render: <TanStackRouterDevtoolsPanel />,
+								},
+								TanStackQueryDevtools,
+							]}
+						/>
+					</ClerkProvider>
+				</PostHogProvider>
 				<Scripts />
 			</body>
 		</html>
